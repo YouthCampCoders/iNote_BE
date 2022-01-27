@@ -1,14 +1,8 @@
-/*
- * @Author: your name
- * @Date: 2022-01-27 21:36:00
- * @LastEditTime: 2022-01-27 21:46:31
- * @LastEditors: Please set LastEditors
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \iNote_BE\src\services\noteService.js
- */
-const noteTable = require('../models/noteTable');
-const inspirecloud = require('@byteinspire/inspirecloud-api');
+const userTable = require("../models/userTable");
+const noteTable = require("../models/noteTable");
+const inspirecloud = require("@byteinspire/inspirecloud-api");
 const ObjectId = inspirecloud.db.ObjectId;
+const arrayRemove = require("../utils/arrayRemove");
 
 /**
  * NoteService
@@ -19,20 +13,41 @@ class NoteService {
   /**
    * 列出用户的所有笔记
    * @param author 用户的 _id
-   * @return {Promise<Array<any>>} 返回笔记数组
+   * @return {Promise<Array<String>>} 返回笔记数组
    */
-  async listAll() {
-    const all = await noteTable.where({author: ObjectId(author)}).find();
-    return all;
+  async listAll(author) {
+    // 暂时不知道为什么这里不用加 ObjectId()
+    const list = await noteTable.where({ author: author }).find();
+    return {
+      success: true,
+      list,
+      message: "拉取成功!",
+    };
   }
 
   /**
    * 创建一篇笔记
-   * @param note 用于创建笔记的数据,内部含有字段author为用户的_id,用于区分作者,原样存进数据库
+   * @param newNote 用于创建笔记的数据,内部含有字段author为用户的_id,用于区分作者,原样存进数据库
    * @return {Promise<any>} 返回实际插入数据库的数据，会增加_id，createdAt和updatedAt字段
    */
-  async create(note) {
-    return await noteTable.save(note);
+  async create(newNote) {
+    // 查询到当前用户信息
+    const user = await userTable
+      .where({
+        _id: ObjectId(newNote.author),
+      })
+      .findOne();
+    // 在Note表中新增笔记
+    await noteTable.save(noteTable.create(newNote));
+
+    // 在用户名下存入新的笔记
+    if (!user.notes) user.notes = [newNote];
+    else user.notes.push(newNote);
+    await userTable.save(user);
+    return {
+      success: true,
+      message: "添加成功!",
+    };
   }
 
   /**
@@ -40,13 +55,32 @@ class NoteService {
    * @param id 笔记的 _id
    * 若不存在，则抛出 404 错误
    */
-  async delete(id) {
-    const result = await noteTable.where({_id: ObjectId(id)}).delete();
-    if (result.deletedCount===0) {
-      const error = new Error(`note:${id} not found`);
-      error.status = 404;
-      throw error;
+  async delete(id, author) {
+    const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
+    const user = await userTable.where({ _id: ObjectId(author) }).findOne();
+    // 判断是否存在
+    if (!note) {
+      return {
+        success: false,
+        message: "笔记不存在!",
+      };
     }
+    // 判断是否是登录用户的文章
+    if (note.author != author) {
+      return {
+        success: false,
+        message: `无权修改`,
+      };
+    }
+    // 从用户表中和笔记表中同时移除
+    user.notes = arrayRemove(user.notes, id);
+    await userTable.save(user);
+    await noteTable.where({ _id: ObjectId(id) }).delete();
+
+    return {
+      success: true,
+      message: "删除成功!",
+    };
   }
 
   /**
@@ -55,15 +89,29 @@ class NoteService {
    * @param updater 将会用原对象 merge 此对象进行更新
    * 若不存在，则抛出 404 错误
    */
-  async update(id, updater) {
-    const note = await noteTable.where({_id: ObjectId(id)}).findOne();
+  async update(id, author, updater) {
+    const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
+    // 判断是否存在
+
     if (!note) {
-      const error = new Error(`note:${id} not found`);
-      error.status = 404;
-      throw error;
+      return {
+        success: false,
+        message: "笔记不存在!",
+      };
+    }
+    // 判断是否是登录用户的文章
+    if (note.author != author) {
+      return {
+        success: false,
+        message: `无权修改`,
+      };
     }
     Object.assign(note, updater);
     await noteTable.save(note);
+    return {
+      success: true,
+      message: "更新成功",
+    };
   }
 }
 
