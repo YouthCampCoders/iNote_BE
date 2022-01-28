@@ -1,7 +1,7 @@
 /*
  * @Author: chichiksky
  * @Date: 2022-01-28 10:40:45
- * @LastEditTime: 2022-01-28 15:16:15
+ * @LastEditTime: 2022-01-28 17:13:07
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \iNote_BE\src\controllers\userCOntroller.js
@@ -22,11 +22,12 @@ class UserController {
   }
 
   /**
-   * 手机号+密码登录
+   * 手机号+验证码登录
    */
   async loginAPI(req, res) {
     const {phoneNumber, code} = req.body;
       // 调用 inspirecloud.user.loginByPhone 校验验证码并登录，如果校验通过，会返回登录后的用户信息
+    try {
       const userInfo = await inspirecloud.user.loginByPhone(
         req,
         phoneNumber,
@@ -34,6 +35,10 @@ class UserController {
       );
       // console('userInfo', userInfo)
       res.send({ success: true, userInfo });
+    } catch (error) {
+      error.status = 422;
+      throw error;
+    }
   }
 
   /**
@@ -42,12 +47,17 @@ class UserController {
    async loginByUsername(req, res) {
     const { username, password } = req.body;
       // 调用 inspirecloud.user.login 如果校验通过，会返回登录后的用户信息
+    try {
       const userInfo = await inspirecloud.user.login(
         req,
         username,
         password
       );
       res.send({ success: true, userInfo });
+    } catch (error) {
+      error.status = 422;
+      throw error;
+    }
   }
 
   /**
@@ -68,12 +78,16 @@ class UserController {
    */
   async updateUserData(req, res) {
     const { username, avatar, intro } = req.body;
-
-    await inspirecloud.user.updateOne(
-      req,
-      { username, avatar, intro } // 这里是需要更新用户信息
-    );
-    res.send({ success:true });
+    try {
+      await inspirecloud.user.updateOne(
+        req,
+        { username, avatar, intro } // 这里是需要更新用户信息
+      );
+      res.send({ success:true });
+    } catch (error) {
+      error.status = 422;
+      throw error;
+    }
 
   }
 
@@ -82,24 +96,34 @@ class UserController {
    */
   async changePassword(req, res) {
     const { newPassword, originPassword } = req.body;
-    await inspirecloud.user.changePassword(
-      req, // 注意，调用所有 inspirecloud.user 相关接口时，都需要传入云函数中的 context
-      newPassword,
-      originPassword
-    );
-    res.send({success: true})
+    try {
+      await inspirecloud.user.changePassword(
+        req, 
+        newPassword,
+        originPassword
+      );
+      res.send({success: true})
+    } catch (error) {
+      error.status = 422;
+      throw error;
+    }
   }
 
   /**
    * 判断用户是否拥有密码
    */
    async getPasswordExist(req, res) {
-    const userTable = inspirecloud.db.table('_user');
-    const { _id } = await inspirecloud.user.current(req);
-    const { passhash } = await userTable.where({ _id: ObjectId(_id) }).findOne();
-    res.send({
-      success: !!passhash,
-    })
+    try {
+      const userTable = inspirecloud.db.table('_user');
+      const { _id } = await inspirecloud.user.current(req);
+      const { passhash } = await userTable.where({ _id: ObjectId(_id) }).findOne();
+      res.send({
+        success: !!passhash,
+      })
+    } catch (error) {
+      error.status = 422;
+      throw error;
+    }
   }
 
   /**

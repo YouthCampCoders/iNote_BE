@@ -1,13 +1,14 @@
 /*
  * @Author: your name
  * @Date: 2022-01-27 17:52:20
- * @LastEditTime: 2022-01-28 15:49:14
+ * @LastEditTime: 2022-01-28 17:10:40
  * @LastEditors: your name
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \iNote_BE\src\app.js
  */
 const path = require("path");
 const noteRouter = require("./routers/note");
+const userRouter = require("./routers/user");
 const authMiddleWare = require("./middleware/auth");
 const express = require("express");
 const app = express();
