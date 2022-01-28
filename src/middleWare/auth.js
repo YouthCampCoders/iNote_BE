@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-01-27 17:42:20
- * @LastEditTime: 2022-01-28 15:50:43
+ * @LastEditTime: 2022-01-28 16:09:39
  * @LastEditors: your name
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \iNote_BE\src\middleWare\auth.js
@@ -14,9 +14,8 @@ module.exports = options => {
       res.status(401);
       res.send({
         success: false,
-        message: "unexpected error",
+        message: "用户未登录",
       });
-      console.log(e);
       await next();
     }
   };
