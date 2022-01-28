@@ -1,7 +1,7 @@
 /*
  * @Author: chichiksky
  * @Date: 2022-01-28 10:40:45
- * @LastEditTime: 2022-01-28 14:31:56
+ * @LastEditTime: 2022-01-28 15:16:15
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \iNote_BE\src\controllers\userCOntroller.js
@@ -73,6 +73,7 @@ class UserController {
       req,
       { username, avatar, intro } // 这里是需要更新用户信息
     );
+    res.send({ success:true });
 
   }
 
@@ -80,11 +81,11 @@ class UserController {
    * 设置密码或修改密码 需处于登录态
    */
   async changePassword(req, res) {
-    const { newPassword } = req.body;
+    const { newPassword, originPassword } = req.body;
     await inspirecloud.user.changePassword(
       req, // 注意，调用所有 inspirecloud.user 相关接口时，都需要传入云函数中的 context
       newPassword,
-      originPassword = params.originPassword
+      originPassword
     );
     res.send({success: true})
   }
