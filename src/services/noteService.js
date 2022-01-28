@@ -1,4 +1,3 @@
-const userTable = require("../models/userTable");
 const noteTable = require("../models/noteTable");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const ObjectId = inspirecloud.db.ObjectId;
@@ -31,19 +30,7 @@ class NoteService {
    * @return {Promise<any>} 返回实际插入数据库的数据，会增加_id，createdAt和updatedAt字段
    */
   async create(newNote) {
-    // 查询到当前用户信息
-    const user = await userTable
-      .where({
-        _id: ObjectId(newNote.author),
-      })
-      .findOne();
-    // 在Note表中新增笔记
     await noteTable.save(noteTable.create(newNote));
-
-    // 在用户名下存入新的笔记
-    if (!user.notes) user.notes = [newNote];
-    else user.notes.push(newNote);
-    await userTable.save(user);
     return {
       success: true,
       message: "添加成功!",
@@ -57,7 +44,6 @@ class NoteService {
    */
   async delete(id, author) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    const user = await userTable.where({ _id: ObjectId(author) }).findOne();
     // 判断是否存在
     if (!note) {
       return {
@@ -72,11 +58,8 @@ class NoteService {
         message: `无权修改`,
       };
     }
-    // 从用户表中和笔记表中同时移除
-    user.notes = arrayRemove(user.notes, id);
-    await userTable.save(user);
+    // 从笔记表中移除
     await noteTable.where({ _id: ObjectId(id) }).delete();
-
     return {
       success: true,
       message: "删除成功!",
@@ -92,7 +75,6 @@ class NoteService {
   async update(id, author, updater) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     // 判断是否存在
-
     if (!note) {
       return {
         success: false,
