@@ -1,13 +1,13 @@
 /*
  * @Author: your name
  * @Date: 2022-01-27 17:52:20
- * @LastEditTime: 2022-01-27 21:28:18
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-01-28 11:26:47
+ * @LastEditors: your name
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \iNote_BE\src\app.js
  */
 const path = require('path');
-const noteRouter = require('./routers/note');
+const userRouter = require('./routers/user');
 
 const express = require('express');
 
@@ -21,7 +21,8 @@ app.use(express.json());
 
 // 为应用使用路由定义
 // 笔记业务路由
-app.use('/',require('./middleware/auth')(),noteRouter);
+// app.use('/',require('./middleware/auth')(),noteRouter);
+app.use('/user',userRouter);
 
 // 若无匹配业务路由，则匹配 404 路由，代表访问路径不存在
 app.use(notFound);
