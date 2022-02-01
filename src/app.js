@@ -12,7 +12,7 @@ const noteRouter = require("./routers/note");
 const userRouter = require("./routers/user");
 const fileRouter = require("./routers/file");
 // 引入中间件
-const authMiddleWare = require("./middleware/auth");
+const authMiddleWare = require("./middleWare/auth");
 const express = require("express");
 // 创建服务
 const app = express();
