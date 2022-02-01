@@ -1,7 +1,6 @@
 const noteTable = require("../models/noteTable");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const ObjectId = inspirecloud.db.ObjectId;
-const arrayRemove = require("../utils/arrayRemove");
 
 /**
  * NoteService
