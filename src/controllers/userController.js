@@ -18,7 +18,10 @@ class UserController {
   async sendMessageAPI(req, res) {
     const { phoneNumber } = req.query;
     await inspirecloud.user.sendSMS(req, phoneNumber);
-    res.send({ success: true });
+    res.send({
+      success: true,
+      message: "发送成功!",
+    });
   }
 
   /**
@@ -34,7 +37,11 @@ class UserController {
         code // 对应手机号上接到的验证码
       );
       // console('userInfo', userInfo)
-      res.send({ success: true, userInfo });
+      res.send({
+        success: true,
+        userInfo,
+        message: "登录成功!",
+      });
     } catch (error) {
       error.status = 422;
       throw error;
@@ -49,7 +56,11 @@ class UserController {
     // 调用 inspirecloud.user.login 如果校验通过，会返回登录后的用户信息
     try {
       const userInfo = await inspirecloud.user.login(req, username, password);
-      res.send({ success: true, userInfo });
+      res.send({
+        success: true,
+        userInfo,
+        message: "登录成功!",
+      });
     } catch (error) {
       error.status = 422;
       throw error;
@@ -62,11 +73,15 @@ class UserController {
   async getUserInfo(req, res) {
     const userInfo = await inspirecloud.user.current(req);
     if (!userInfo) {
-      const error = new Error(`用户未登录`);
+      const error = new Error(`用户未登录!`);
       error.status = 401;
       throw error;
     }
-    res.send({ success: true, userInfo });
+    res.send({
+      success: true,
+      userInfo,
+      message: "用户已登录!",
+    });
   }
 
   /**
@@ -79,7 +94,10 @@ class UserController {
         req,
         { username, avatar, intro } // 这里是需要更新用户信息
       );
-      res.send({ success: true });
+      res.send({
+        success: true,
+        message: "更新成功!",
+      });
     } catch (error) {
       error.status = 422;
       throw error;
@@ -93,7 +111,10 @@ class UserController {
     const { newPassword, originPassword } = req.body;
     try {
       await inspirecloud.user.changePassword(req, newPassword, originPassword);
-      res.send({ success: true });
+      res.send({
+        success: true,
+        message: "设置/更改成功!",
+      });
     } catch (error) {
       error.status = 422;
       throw error;
@@ -124,7 +145,10 @@ class UserController {
    */
   async logout(req, res) {
     await inspirecloud.user.logout(req);
-    res.send({ success: true });
+    res.send({
+      success: true,
+      message: "已退出登录!",
+    });
   }
 
   /**
@@ -142,6 +166,7 @@ class UserController {
       res.send({
         success: true,
         userInfo,
+        message: "注册成功",
       });
     } catch (e) {
       res.send({

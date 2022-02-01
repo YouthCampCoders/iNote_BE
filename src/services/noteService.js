@@ -84,7 +84,7 @@ class NoteService {
     if (note.author != author) {
       return {
         success: false,
-        message: `无权修改`,
+        message: "无权修改",
       };
     }
     Object.assign(note, updater);

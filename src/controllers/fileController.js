@@ -6,22 +6,15 @@ class FileController {
     // 调用 Service 层对应的业务处理方法
     // 暂为一次上传一个图片
     const result = await fileService.uploadFile(req.files[0]);
-    res.send({
-      success: true,
-      result,
-      message: "上传成功!",
-    });
+    res.send(result);
   }
 
   async deleteFile(req, res) {
     const { url, _id } = req.body;
     // 动态键选择按照url或者id删除文件
     const key = url ? url : _id;
-    await fileService.deleteFile(key);
-    res.send({
-      success: true,
-      message: "删除成功!",
-    });
+    const result = await fileService.deleteFile(key);
+    res.send(result);
   }
 }
 

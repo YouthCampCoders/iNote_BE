@@ -20,7 +20,11 @@ class FileService {
         type: myFile.mimetype, // 文件类型，不传则会根据文件后缀名自动识别
       }
     );
-    return url;
+    return {
+      success: true,
+      url,
+      message: "上传成功!",
+    };
   }
 
   /**
@@ -30,6 +34,10 @@ class FileService {
    */
   async deleteFile(key) {
     await inspirecloud.file.delete(key);
+    return {
+      success: true,
+      message: "删除成功!",
+    };
   }
 }
 
