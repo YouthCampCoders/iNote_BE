@@ -12,6 +12,7 @@
   ],
   "dependencies": {
     "@byteinspire/inspirecloud-api": "*",
+    "dayjs": "^1.10.7",
     "express": "^4.17.1",
     "multer": "^1.4.4"
   },

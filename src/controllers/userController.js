@@ -167,7 +167,7 @@ class UserController {
       res.send({
         success: true,
         userInfo,
-        message: "注册成功",
+        message: "注册成功!",
       });
     } catch (e) {
       res.send({
@@ -181,14 +181,16 @@ class UserController {
 
   /**
    * @param {String} id 更新字段
-   * @param {String} field 更新字段
-   * @param {Any} data 更新字段
+   * @param {Array} field 更新字段
+   * @param {Array} data 更新字段
    * */
   async updateOne(id, field, data) {
     // 找到对应的用户
     const user = await userTable.where({ _id: ObjectId(id) }).findOne();
     // 更改字段对应数据
-    user[field] = data;
+    field.forEach((element, index) => {
+      user[element] = data[index];
+    });
     await userTable.save(user);
   }
 }

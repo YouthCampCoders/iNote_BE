@@ -9,8 +9,8 @@ const inspirecloud = require("@byteinspire/inspirecloud-api");
 class FileService {
   /**
    * 上传文件
-   * @param file 为用户上传的文件
-   * @return {String} 返回实际插入数据库的文件的url
+   * @param myFile 为用户上传的文件
+   * @return 返回实际插入数据库的文件的url
    */
   async uploadFile(myFile) {
     const { url } = await inspirecloud.file.upload(
