@@ -1,6 +1,8 @@
 const noteTable = require("../models/noteTable");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const ObjectId = inspirecloud.db.ObjectId;
+const removeItem = require("../utils/removeItem");
+const userController = require("../controllers/userController");
 
 /**
  * NoteService
@@ -10,12 +12,11 @@ const ObjectId = inspirecloud.db.ObjectId;
 class NoteService {
   /**
    * 列出用户的所有笔记
-   * @param author 用户的 _id
+   * @param {string} author 用户的 _id
    * @return {Promise<Array<String>>} 返回笔记数组
    */
   async listAll(author) {
-    // 暂时不知道为什么这里不用加 ObjectId()
-    const list = await noteTable.where({ author: author }).find();
+    const list = await noteTable.where({ author }).find();
     return {
       success: true,
       list,
@@ -39,9 +40,11 @@ class NoteService {
   /**
    * 删除一条笔记
    * @param id 笔记的 _id
+   * @param author 笔记作者的 _id
+   * @param tags 笔记作者名下的所有的标签
    * 若不存在，则抛出 404 错误
    */
-  async delete(id, author) {
+  async delete(id, author, tags) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     // 判断是否存在
     if (!note) {
@@ -57,8 +60,17 @@ class NoteService {
         message: `无权修改`,
       };
     }
-    // 从笔记表中移除
+    // 储存当前文章的tag
+    const tag = note.tag;
+    // 从笔记表中移除该笔记
     await noteTable.where({ _id: ObjectId(id) }).delete();
+    // 查询作者名下是否还有同名tag
+    const tagsLeft = await noteTable.where({ author, tag }).find();
+    // 如果此时已经不存在当前标签了,则在用户表中也删除该字段
+    if (tagsLeft.length === 0) {
+      const newTags = removeItem(tags, tag);
+      await userController.updateOne(author, "tags", newTags);
+    }
     return {
       success: true,
       message: "删除成功!",
@@ -67,6 +79,36 @@ class NoteService {
 
   /**
    * 更新一条笔记
+   * @param id 笔记的 _id
+   * @param updater 将会用原对象 merge 此对象进行更新
+   * 若不存在，则抛出 404 错误
+   */
+  async update(id, author, updater) {
+    const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
+    // 判断是否存在
+    if (!note) {
+      return {
+        success: false,
+        message: "笔记不存在!",
+      };
+    }
+    // 判断是否是登录用户的文章
+    if (note.author != author) {
+      return {
+        success: false,
+        message: "无权修改",
+      };
+    }
+    Object.assign(note, updater);
+    await noteTable.save(note);
+    return {
+      success: true,
+      message: "更新成功",
+    };
+  }
+
+  /**
+   * 按时间顺序归档
    * @param id 笔记的 _id
    * @param updater 将会用原对象 merge 此对象进行更新
    * 若不存在，则抛出 404 错误

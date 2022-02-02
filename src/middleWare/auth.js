@@ -18,8 +18,8 @@ module.exports = (options) => {
       });
       return;
     }
-    // 通过中间件查询将当前用户id储存在req.author中
-    req.author = user._id;
+    // 通过中间件查询将当前用户储存在req._user中
+    req._user = user;
     await next();
   };
 };

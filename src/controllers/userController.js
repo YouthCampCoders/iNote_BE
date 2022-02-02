@@ -7,6 +7,7 @@
  * @FilePath: \iNote_BE\src\controllers\userCOntroller.js
  */
 const inspirecloud = require("@byteinspire/inspirecloud-api");
+const userTable = require("../models/userTable");
 const ObjectId = inspirecloud.db.ObjectId;
 /**
  * userController 关于用户系统的一些api;
@@ -174,6 +175,21 @@ class UserController {
         message: e.message,
       });
     }
+  }
+
+  /* 以下方法为后端调用 */
+
+  /**
+   * @param {String} id 更新字段
+   * @param {String} field 更新字段
+   * @param {Any} data 更新字段
+   * */
+  async updateOne(id, field, data) {
+    // 找到对应的用户
+    const user = await userTable.where({ _id: ObjectId(id) }).findOne();
+    // 更改字段对应数据
+    user[field] = data;
+    await userTable.save(user);
   }
 }
 
