@@ -15,9 +15,10 @@ function wrap(handler) {
 
 // 组装路由
 router.get("/", wrap(noteController.listNotes));
-router.get("/:year", wrap(noteController.listByYear));
 router.post("/", wrap(noteController.create));
 router.put("/:id", wrap(noteController.update));
 router.delete("/:id", wrap(noteController.delete));
+router.post("/push/:id", wrap(noteController.reSchedule));
+router.delete("/push/:id", wrap(noteController.cancelPush));
 
 module.exports = router;

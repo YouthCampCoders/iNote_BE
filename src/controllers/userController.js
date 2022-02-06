@@ -4,11 +4,15 @@
  * @LastEditTime: 2022-01-28 17:13:07
  * @LastEditors: your name
  * @Description:
- * @FilePath: \iNote_BE\src\controllers\userCOntroller.js
+ * @FilePath: \iNote_BE\src\controllers\userController.js
  */
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const userTable = require("../models/userTable");
 const ObjectId = inspirecloud.db.ObjectId;
+const noteDemo = require("../utils/noteDemo");
+const noteTable = require("../models/noteTable");
+const dayjs = require("dayjs");
+
 /**
  * userController 关于用户系统的一些api;
  */
@@ -16,7 +20,7 @@ class UserController {
   /**
    * 发送短信API
    */
-  async sendMessageAPI(req, res) {
+  static async sendMessageAPI(req, res) {
     const { phoneNumber } = req.query;
     await inspirecloud.user.sendSMS(req, phoneNumber);
     res.send({
@@ -28,7 +32,7 @@ class UserController {
   /**
    * 手机号+验证码登录
    */
-  async loginAPI(req, res) {
+  static async loginAPI(req, res) {
     const { phoneNumber, code } = req.body;
     // 调用 inspirecloud.user.loginByPhone 校验验证码并登录，如果校验通过，会返回登录后的用户信息
     try {
@@ -37,7 +41,14 @@ class UserController {
         phoneNumber,
         code // 对应手机号上接到的验证码
       );
-      // console('userInfo', userInfo)
+      const { _id } = await inspirecloud.user.current(req);
+      await noteTable.save(noteTable.create(noteDemo(_id)));
+      // 也需要保存下标签年份
+      await UserController.updateOne(
+        _id,
+        ["tags", "years"],
+        [["未分类"], [dayjs().year()]]
+      );
       res.send({
         success: true,
         userInfo,
@@ -52,7 +63,7 @@ class UserController {
   /**
    * 用户名+密码登录
    */
-  async loginByUsername(req, res) {
+  static async loginByUsername(req, res) {
     const { username, password } = req.body;
     // 调用 inspirecloud.user.login 如果校验通过，会返回登录后的用户信息
     try {
@@ -71,7 +82,7 @@ class UserController {
   /**
    * 获取登录信息
    */
-  async getUserInfo(req, res) {
+  static async getUserInfo(req, res) {
     const userInfo = await inspirecloud.user.current(req);
     if (!userInfo) {
       const error = new Error(`用户未登录!`);
@@ -88,7 +99,7 @@ class UserController {
   /**
    * 修改用户信息 需处于登录态
    */
-  async updateUserData(req, res) {
+  static async updateUserData(req, res) {
     const { username, avatar, intro } = req.body;
     try {
       await inspirecloud.user.updateOne(
@@ -108,7 +119,7 @@ class UserController {
   /**
    * 设置密码或修改密码 需处于登录态
    */
-  async changePassword(req, res) {
+  static async changePassword(req, res) {
     const { newPassword, originPassword } = req.body;
     try {
       await inspirecloud.user.changePassword(req, newPassword, originPassword);
@@ -125,7 +136,7 @@ class UserController {
   /**
    * 判断用户是否拥有密码
    */
-  async getPasswordExist(req, res) {
+  static async getPasswordExist(req, res) {
     try {
       const userTable = inspirecloud.db.table("_user");
       const { _id } = await inspirecloud.user.current(req);
@@ -144,7 +155,7 @@ class UserController {
   /**
    * 退出登录
    */
-  async logout(req, res) {
+  static async logout(req, res) {
     await inspirecloud.user.logout(req);
     res.send({
       success: true,
@@ -155,18 +166,25 @@ class UserController {
   /**
    * 用户名密码注册
    */
-  async registerByUsername(req, res) {
+  static async registerByUsername(req, res) {
     // 从 params 中获取账号密码等参数
     const { username, password } = req.body;
     try {
-      const userInfo = await inspirecloud.user.register(
+      const user = await inspirecloud.user.register(
         req, // 注意，调用所有 inspirecloud.user 相关接口时，都需要传入云函数中的 context
         username,
         password
       );
+      await noteTable.save(noteTable.create(noteDemo(user.userInfo._id)));
+      // 也需要保存下标签年份
+      await UserController.updateOne(
+        user.userInfo._id,
+        ["tags", "years"],
+        [["未分类"], [dayjs().year()]]
+      );
       res.send({
         success: true,
-        userInfo,
+        user,
         message: "注册成功!",
       });
     } catch (e) {
@@ -184,7 +202,7 @@ class UserController {
    * @param {Array} field 更新字段
    * @param {Array} data 更新字段
    * */
-  async updateOne(id, field, data) {
+  static async updateOne(id, field, data) {
     // 找到对应的用户
     const user = await userTable.where({ _id: ObjectId(id) }).findOne();
     // 更改字段对应数据
@@ -196,4 +214,4 @@ class UserController {
 }
 
 // 导出 Controller 的实例
-module.exports = new UserController();
+module.exports = UserController;
