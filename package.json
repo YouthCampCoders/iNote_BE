@@ -1,6 +1,10 @@
 {
   "name": "@byteinspire-template/express",
   "version": "0.0.6",
+  "scripts": {
+    "dev": "inspirecloud dev",
+    "deploy": "inspirecloud deploy"
+  },
   "files": [
     "*",
     "!.*",
@@ -8,13 +12,14 @@
   ],
   "dependencies": {
     "@byteinspire/inspirecloud-api": "*",
-    "express": "^4.17.1"
+    "dayjs": "^1.10.7",
+    "express": "^4.17.1",
+    "multer": "^1.4.4"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
   "repository": {},
-  "license": "ISC",
-  "scripts": {}
+  "license": "ISC"
 }
