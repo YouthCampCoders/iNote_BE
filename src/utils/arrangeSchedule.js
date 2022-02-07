@@ -1,26 +1,27 @@
 const dayjs = require("dayjs");
 
-// const options = [
-//   [0, "minute"],
-//   [20, "minute"],
-//   [1, "hour"],
-//   [8, "hour"],
-//   [1, "day"],
-//   [2, "day"],
-//   [7, "day"],
-//   [1, "month"],
-// ];
-
 const options = [
   [0, "minute"],
-  [1, "minute"],
-  [2, "minute"],
-  [3, "minute"],
-  [4, "minute"],
-  [5, "minute"],
-  [6, "minute"],
-  [7, "minute"],
+  [20, "minute"],
+  [1, "hour"],
+  [8, "hour"],
+  [1, "day"],
+  [2, "day"],
+  [7, "day"],
+  [1, "month"],
 ];
+
+//  测试用
+// const options = [
+//   [0, "minute"],
+//   [1, "minute"],
+//   [2, "minute"],
+//   [3, "minute"],
+//   [4, "minute"],
+//   [5, "minute"],
+//   [6, "minute"],
+//   [7, "minute"],
+// ];
 
 /**
  * 更改推送时间
