@@ -1,10 +1,10 @@
-const noteTable = require("../models/noteTable");
+const dayjs = require("dayjs");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
+const userController = require("../controllers/userController");
+const noteTable = require("../models/noteTable");
 const db = inspirecloud.db;
 const ObjectId = inspirecloud.db.ObjectId;
 const removeItem = require("../utils/removeItem");
-const userController = require("../controllers/userController");
-const dayjs = require("dayjs");
 const arrangeSchedule = require("../utils/arrangeSchedule");
 
 /**
@@ -18,7 +18,7 @@ class NoteService {
    * @param {Object} options 具体的限制条件
    * @return {Object[]} 返回笔记数组
    */
-  async listNotes(options) {
+  static async listNotes(options) {
     const list = await noteTable.where(options).find();
     return {
       success: true,
@@ -32,7 +32,7 @@ class NoteService {
    * @param newNote 用于创建笔记的数据,内部含有字段author为用户的_id,用于区分作者,原样存进数据库
    * @return {Object[]} 返回存入数据库的数据
    */
-  async create(newNote) {
+  static async create(newNote) {
     await noteTable.save(noteTable.create(newNote));
     return {
       success: true,
@@ -49,7 +49,7 @@ class NoteService {
    * @param years 笔记作者名下的所有笔记的年份
    * 若不存在，则抛出 404 错误
    */
-  async delete(id, author, tags, years) {
+  static async delete(id, author, tags, years) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     // 储存当前文章的tag和year
     const tag = note.tag;
@@ -86,7 +86,7 @@ class NoteService {
    * @param updater 将会用原对象 merge 此对象进行更新
    * 若不存在，则抛出 404 错误
    */
-  async update(id, updater) {
+  static async update(id, updater) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     Object.assign(note, updater);
     await noteTable.save(note);
@@ -100,7 +100,7 @@ class NoteService {
    * 取消推送
    * @param id 笔记的 _id
    */
-  async cancelPush(id) {
+  static async cancelPush(id) {
     // 从 note 表中将该笔记修改为无需推送
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     note.needPush = false;
@@ -119,10 +119,10 @@ class NoteService {
    * @param round 笔记的当前推送轮次
    * @param date 笔记的下一次推送时间
    */
-  async reSchedule(id, date) {
+  static async reSchedule(id, date) {
     // 从 note 表中将该笔记修改为无需推送
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    note.schedule = arrangeSchedule(date, note.round);
+    note.schedule = arrangeSchedule(dayjs(date), note.round);
     await noteTable.save(note);
     return {
       success: true,
@@ -131,5 +131,5 @@ class NoteService {
   }
 }
 
-// 导出 Service 的实例
-module.exports = new NoteService();
+// 导出 Servic
+module.exports = NoteService;

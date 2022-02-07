@@ -1,4 +1,3 @@
-const fileTable = require("../models/fileTable");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 
 /**
@@ -12,7 +11,7 @@ class FileService {
    * @param myFile 为用户上传的文件
    * @return 返回实际插入数据库的文件的url
    */
-  async uploadFile(myFile) {
+  static async uploadFile(myFile) {
     const { url } = await inspirecloud.file.upload(
       myFile.originalname, // 文件名
       myFile.buffer, // 文件内容
@@ -32,8 +31,8 @@ class FileService {
    * @param url 为用户上传的文件url
    * @return {success: true} 返回删除成功信息
    */
-  async deleteFile(key) {
-    await inspirecloud.file.delete(key);
+  static async deleteFile(url) {
+    await inspirecloud.file.delete(url);
     return {
       success: true,
       message: "删除成功!",
@@ -41,5 +40,5 @@ class FileService {
   }
 }
 
-// 导出 Service 的实例
-module.exports = new FileService();
+// 导出 Service
+module.exports = FileService;

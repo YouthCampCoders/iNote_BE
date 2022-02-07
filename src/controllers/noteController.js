@@ -1,13 +1,13 @@
 const noteService = require("../services/noteService");
 const userController = require("../controllers/userController");
-const Deduplication = require("../utils/Deduplication");
+const deduplication = require("../utils/deduplication");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const db = inspirecloud.db;
 const dayjs = require("dayjs");
 const arrangeSchedule = require("../utils/arrangeSchedule");
 class NoteController {
   // 拉取笔记
-  async listNotes(req, res) {
+  static async listNotes(req, res) {
     const { tag, year, needPush } = req.query;
 
     const options = {
@@ -29,13 +29,14 @@ class NoteController {
     res.send(result);
   }
 
-  async create(req, res) {
+  static async create(req, res) {
     const author = req._user._id;
     let tags = req._user.tags || [];
     let years = req._user.years || [];
     let { title, content, needPush, tag = "未分类" } = req.body;
     let schedule = [];
     const round = 1;
+    // 如果需要推送，生成时间表
     if (needPush) schedule = arrangeSchedule();
     // 调用 Service 层对应的业务处理方法
     const result = await noteService.create({
@@ -49,14 +50,14 @@ class NoteController {
     });
     // 更改对应用户的标签和年份列表
     const year = dayjs().year();
-    tags = Deduplication(tags, tag);
-    years = Deduplication(years, year);
+    tags = deduplication(tags, tag);
+    years = deduplication(years, year);
     await userController.updateOne(author, ["tags", "years"], [tags, years]);
     // 更改对应用户的年份列表
     res.send(result);
   }
 
-  async update(req, res) {
+  static async update(req, res) {
     // 调用 Service 层对应的业务处理方法
     const { title, content, needPush } = req.body;
     const result = await noteService.update(req.params.id, {
@@ -67,7 +68,7 @@ class NoteController {
     res.send(result);
   }
 
-  async delete(req, res) {
+  static async delete(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const author = req._user._id;
@@ -77,21 +78,21 @@ class NoteController {
     res.send(result);
   }
 
-  async cancelPush(req, res) {
+  static async cancelPush(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const result = await noteService.cancelPush(id);
     res.send(result);
   }
 
-  async reSchedule(req, res) {
+  static async reSchedule(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const { date } = req.body;
-    const result = await noteService.reSchedule(id, dayjs(date));
+    const result = await noteService.reSchedule(id, date);
     res.send(result);
   }
 }
 
-// 导出 Controller 的实例
-module.exports = new NoteController();
+// 导出 Controller
+module.exports = NoteController;

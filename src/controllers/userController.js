@@ -175,6 +175,7 @@ class UserController {
         username,
         password
       );
+      // 给新用户保存一个预制笔记
       await noteTable.save(noteTable.create(noteDemo(user.userInfo._id)));
       // 也需要保存下标签年份
       await UserController.updateOne(
@@ -195,12 +196,13 @@ class UserController {
     }
   }
 
-  /* 以下方法为后端调用 */
+  /* 以下方法为后端本地调用 */
 
   /**
-   * @param {String} id 更新字段
-   * @param {Array} field 更新字段
-   * @param {Array} data 更新字段
+   * 用于更新用户的一个或多个字段信息
+   * @param {String} id 用户id
+   * @param {Array} field 待更新字段
+   * @param {Array} data 待更新的字段数据
    * */
   static async updateOne(id, field, data) {
     // 找到对应的用户
@@ -213,5 +215,5 @@ class UserController {
   }
 }
 
-// 导出 Controller 的实例
+// 修改为导出 Controller ，使用静态方法调用
 module.exports = UserController;

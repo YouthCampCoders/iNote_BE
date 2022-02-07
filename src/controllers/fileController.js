@@ -1,7 +1,7 @@
 const fileService = require("../services/fileService");
 
 class FileController {
-  async uploadFile(req, res) {
+  static async uploadFile(req, res) {
     // 从请求参数中获取文件，请求 Content-Type 需要为 multipart/form-data
     // 调用 Service 层对应的业务处理方法
     // 暂为一次上传一个图片
@@ -9,14 +9,12 @@ class FileController {
     res.send(result);
   }
 
-  async deleteFile(req, res) {
-    const { url, _id } = req.body;
-    // 动态键选择按照url或者id删除文件
-    const key = url ? url : _id;
-    const result = await fileService.deleteFile(key);
+  static async deleteFile(req, res) {
+    const { url } = req.body;
+    const result = await fileService.deleteFile(url);
     res.send(result);
   }
 }
 
-// 导出 Controller 的实例
-module.exports = new FileController();
+// 导出 Controller
+module.exports = FileController;
