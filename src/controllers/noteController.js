@@ -1,10 +1,10 @@
 const noteService = require("../services/noteService");
 const userController = require("../controllers/userController");
-const deduplication = require("../utils/deduplication");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const db = inspirecloud.db;
 const dayjs = require("dayjs");
 const arrangeSchedule = require("../utils/arrangeSchedule");
+const deduplication = require("../utils/deduplication");
 class NoteController {
   // 拉取笔记
   static async listNotes(req, res) {

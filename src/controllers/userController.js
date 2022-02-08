@@ -41,14 +41,18 @@ class UserController {
         phoneNumber,
         code // 对应手机号上接到的验证码
       );
-      const { _id } = await inspirecloud.user.current(req);
-      await noteTable.save(noteTable.create(noteDemo(_id)));
-      // 也需要保存下标签年份
-      await UserController.updateOne(
-        _id,
-        ["tags", "years"],
-        [["未分类"], [dayjs().year()]]
-      );
+      const { _id, loginCount } = await inspirecloud.user.current(req);
+      // 第一次登录，即注册账户
+      if (loginCount === 1) {
+        // 保存一个初始化的笔记
+        await noteTable.save(noteTable.create(noteDemo(_id)));
+        // 也需要保存下标签年份
+        await UserController.updateOne(
+          _id,
+          ["tags", "years"],
+          [["未分类"], [dayjs().year()]]
+        );
+      }
       res.send({
         success: true,
         userInfo,

@@ -8,7 +8,6 @@
  */
 const path = require("path");
 const express = require("express");
-const dayjs = require("dayjs");
 // 引入路由
 const noteRouter = require("./routers/note");
 const userRouter = require("./routers/user");
