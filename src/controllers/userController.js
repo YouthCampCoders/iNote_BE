@@ -1,10 +1,10 @@
 /*
  * @Author: chichiksky
  * @Date: 2022-01-28 10:40:45
- * @LastEditTime: 2022-01-28 17:13:07
+ * @LastEditTime: 2022-02-09 19:29:15
  * @LastEditors: your name
  * @Description:
- * @FilePath: \iNote_BE\src\controllers\userController.js
+ * @FilePath: \iNote_BE\src\controllers\userCOntroller.js
  */
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const userTable = require("../models/userTable");
@@ -104,11 +104,11 @@ class UserController {
    * 修改用户信息 需处于登录态
    */
   static async updateUserData(req, res) {
-    const { username, avatar, intro } = req.body;
+    const { username, avatar, intro, email } = req.body;
     try {
       await inspirecloud.user.updateOne(
         req,
-        { username, avatar, intro } // 这里是需要更新用户信息
+        { username, avatar, intro, email } // 这里是需要更新用户信息
       );
       res.send({
         success: true,
