@@ -24,7 +24,6 @@ class NoteController {
     // 如果传入了 needPush 参数
     if (needPush) options.needPush = JSON.parse(needPush);
     // 调用 Service 层对应的业务处理方法
-    console.log(options);
     const result = await noteService.listNotes(options);
     res.send(result);
   }

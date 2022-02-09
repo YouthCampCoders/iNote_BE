@@ -8,7 +8,6 @@
  */
 const nodeMailer = require("nodeMailer");
 module.exports = async (to, subject, html) => {
-  console.log(to);
   const cfg = require("../config");
   if (!cfg || !cfg.user || !cfg.pass) return;
   const transporter = nodeMailer.createTransport({
