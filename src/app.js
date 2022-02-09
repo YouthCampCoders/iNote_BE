@@ -52,6 +52,7 @@ app.use(notFound);
  */
 app.use(errorHandler);
 // 启动轮询
+console.log("启动轮询");
 polling();
 
 function notFound(req, res) {
