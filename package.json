@@ -14,7 +14,8 @@
     "@byteinspire/inspirecloud-api": "*",
     "dayjs": "^1.10.7",
     "express": "^4.17.1",
-    "multer": "^1.4.4"
+    "multer": "^1.4.4",
+    "nodeMailer": "npm:nodemailer@^6.7.2"
   },
   "publishConfig": {
     "access": "public",
