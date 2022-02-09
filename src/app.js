@@ -7,30 +7,33 @@
  * @FilePath: \iNote_BE\src\app.js
  */
 const path = require("path");
+const express = require("express");
 // 引入路由
 const noteRouter = require("./routers/note");
 const userRouter = require("./routers/user");
 const fileRouter = require("./routers/file");
 // 引入中间件
 const authMiddleWare = require("./middleWare/auth");
-const express = require("express");
+// 引入轮询
+const polling = require("./utils/polling");
 // 创建服务
 const app = express();
-// 本地调试解决跨域
-// app.all("*", function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, x-tt-session-v2"
-//   );
-//   res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
-//   // OPTIONS快速返回200
-//   if (req.method == "OPTIONS") {
-//     res.sendStatus(200);
-//   } else {
-//     next();
-//   }
-// });
+/* 本地调试解决跨域
+app.all("*", function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, x-tt-session-v2"
+  );
+  res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
+  // OPTIONS快速返回200
+  if (req.method == "OPTIONS") {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+*/
 // 静态文件中间件
 app.use(express.static(path.join(__dirname, "../public")));
 // 请求体 parse 中间件，用于 parse json 格式请求体
@@ -48,6 +51,8 @@ app.use(notFound);
  * }
  */
 app.use(errorHandler);
+// 启动轮询
+polling();
 
 function notFound(req, res) {
   res.status(404);
