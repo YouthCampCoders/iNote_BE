@@ -13,14 +13,10 @@ const noteDemo = require("../utils/noteDemo");
 const noteTable = require("../models/noteTable");
 const dayjs = require("dayjs");
 
-/**
- * userController 关于用户系统的一些api;
- */
+// userController 关于用户系统的一些api
 class UserController {
-  /**
-   * 发送短信API
-   */
-  static async sendMessageAPI(req, res) {
+  // 发送短信API
+  static async sendMessageAPI (req, res) {
     const { phoneNumber } = req.query;
     await inspirecloud.user.sendSMS(req, phoneNumber);
     res.send({
@@ -29,10 +25,8 @@ class UserController {
     });
   }
 
-  /**
-   * 手机号+验证码登录
-   */
-  static async loginAPI(req, res) {
+  // 手机号+验证码登录
+  static async loginAPI (req, res) {
     const { phoneNumber, code } = req.body;
     // 调用 inspirecloud.user.loginByPhone 校验验证码并登录，如果校验通过，会返回登录后的用户信息
     try {
@@ -64,10 +58,8 @@ class UserController {
     }
   }
 
-  /**
-   * 用户名+密码登录
-   */
-  static async loginByUsername(req, res) {
+  // 用户名+密码登录
+  static async loginByUsername (req, res) {
     const { username, password } = req.body;
     // 调用 inspirecloud.user.login 如果校验通过，会返回登录后的用户信息
     try {
@@ -83,10 +75,8 @@ class UserController {
     }
   }
 
-  /**
-   * 获取登录信息
-   */
-  static async getUserInfo(req, res) {
+  // 获取登录信息
+  static async getUserInfo (req, res) {
     const userInfo = await inspirecloud.user.current(req);
     if (!userInfo) {
       const error = new Error(`用户未登录!`);
@@ -100,10 +90,8 @@ class UserController {
     });
   }
 
-  /**
-   * 修改用户信息 需处于登录态
-   */
-  static async updateUserData(req, res) {
+  // 修改用户信息 需处于登录态
+  static async updateUserData (req, res) {
     const { username, avatar, intro, email } = req.body;
     try {
       await inspirecloud.user.updateOne(
@@ -120,10 +108,8 @@ class UserController {
     }
   }
 
-  /**
-   * 设置密码或修改密码 需处于登录态
-   */
-  static async changePassword(req, res) {
+  // 设置密码或修改密码 需处于登录态
+  static async changePassword (req, res) {
     const { newPassword, originPassword } = req.body;
     try {
       await inspirecloud.user.changePassword(req, newPassword, originPassword);
@@ -137,10 +123,8 @@ class UserController {
     }
   }
 
-  /**
-   * 判断用户是否拥有密码
-   */
-  static async getPasswordExist(req, res) {
+  // 判断用户是否拥有密码
+  static async getPasswordExist (req, res) {
     try {
       const userTable = inspirecloud.db.table("_user");
       const { _id } = await inspirecloud.user.current(req);
@@ -156,10 +140,8 @@ class UserController {
     }
   }
 
-  /**
-   * 退出登录
-   */
-  static async logout(req, res) {
+  // 退出登录
+  static async logout (req, res) {
     await inspirecloud.user.logout(req);
     res.send({
       success: true,
@@ -167,10 +149,8 @@ class UserController {
     });
   }
 
-  /**
-   * 用户名密码注册
-   */
-  static async registerByUsername(req, res) {
+  // 用户名密码注册
+  static async registerByUsername (req, res) {
     // 从 params 中获取账号密码等参数
     const { username, password } = req.body;
     try {
@@ -208,7 +188,7 @@ class UserController {
    * @param {Array} field 待更新字段
    * @param {Array} data 待更新的字段数据
    * */
-  static async updateOne(id, field, data) {
+  static async updateOne (id, field, data) {
     // 找到对应的用户
     const user = await userTable.where({ _id: ObjectId(id) }).findOne();
     // 更改字段对应数据
