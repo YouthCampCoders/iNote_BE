@@ -116,11 +116,10 @@ class NoteService {
   /**
    * 更改推送时间
    * @param id 笔记的 _id
-   * @param round 笔记的当前推送轮次
    * @param date 笔记的下一次推送时间
    */
   static async reSchedule(id, date) {
-    // 从 note 表中将该笔记修改为无需推送
+    // 重新修改笔记推送时间
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     note.schedule = arrangeSchedule(dayjs(date), note.round);
     await noteTable.save(note);

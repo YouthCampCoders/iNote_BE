@@ -179,7 +179,7 @@ class UserController {
         username,
         password
       );
-      // 给新用户保存一个预制笔记
+      // 给新用户保存一个预置笔记
       await noteTable.save(noteTable.create(noteDemo(user.userInfo._id)));
       // 也需要保存下标签年份
       await UserController.updateOne(
