@@ -34,8 +34,7 @@ module.exports = async function (note) {
   }</strong>次推送,请及时登录网站复习哦!</p>
   <br/>
   <div style="padding-left: 20px;border-left: solid #4169E1 5px;">
-  <q>${items[note.round]}</q>
-  </div>`;
+  <q>${items[note.round]}</q>`;
   // 调用QQ邮箱推送内容
   // 需要用户填写邮箱
   await sendEmailFromQQ(user.email, "iNote笔记推送", text);
