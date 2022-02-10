@@ -19,5 +19,5 @@ module.exports = function () {
     pushList.forEach(async (note) => {
       await pushNotice(note);
     });
-  }, 600000);
+  }, 60000);
 };
