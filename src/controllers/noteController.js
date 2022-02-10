@@ -7,7 +7,7 @@ const arrangeSchedule = require("../utils/arrangeSchedule");
 const deduplication = require("../utils/deduplication");
 class NoteController {
   // 拉取笔记
-  static async listNotes (req, res) {
+  static async listNotes(req, res) {
     const { tag, year, needPush } = req.query;
 
     const options = {
@@ -28,7 +28,7 @@ class NoteController {
     res.send(result);
   }
   // 新建笔记
-  static async create (req, res) {
+  static async create(req, res) {
     const author = req._user._id;
     let tags = req._user.tags || [];
     let years = req._user.years || [];
@@ -56,18 +56,19 @@ class NoteController {
     res.send(result);
   }
   // 更新笔记
-  static async update (req, res) {
+  static async update(req, res) {
     // 调用 Service 层对应的业务处理方法
     const { title, content, needPush } = req.body;
-    const result = await noteService.update(req.params.id, {
+    const result = await noteService.update(
+      req.params.id,
       title,
       content,
-      needPush,
-    });
+      needPush
+    );
     res.send(result);
   }
   // 删除笔记
-  static async delete (req, res) {
+  static async delete(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const author = req._user._id;
@@ -77,14 +78,14 @@ class NoteController {
     res.send(result);
   }
   // 取消推送
-  static async cancelPush (req, res) {
+  static async cancelPush(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const result = await noteService.cancelPush(id);
     res.send(result);
   }
   // 更改推送时间
-  static async reSchedule (req, res) {
+  static async reSchedule(req, res) {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const { date } = req.body;

@@ -86,9 +86,17 @@ class NoteService {
    * @param updater 将会用原对象 merge 此对象进行更新
    * 若不存在，则抛出 404 错误
    */
-  static async update(id, updater) {
+  static async update(id, title, content, needPush) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    Object.assign(note, updater);
+    if (needPush) {
+      note.schedule = arrangeSchedule();
+    } else {
+      note.schedule = [];
+    }
+    note.round = 1;
+    note.title = title;
+    note.content = content;
+    note.needPush = needPush;
     await noteTable.save(note);
     return {
       success: true,
