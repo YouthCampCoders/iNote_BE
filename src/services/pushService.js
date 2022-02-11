@@ -41,7 +41,7 @@ class PushService {
    * @param pushTime 下次推送时间，类型为日期对象
    */
   static async edit(noteId, pushTime) {
-    const info = await pushTable.where({ noteId }).findOne();
+    const info = await pushTable.where({ noteId: ObjectId(noteId) }).findOne();
     info.pushTime = pushTime;
     await pushTable.save(info);
   }
@@ -49,7 +49,7 @@ class PushService {
    * 取消推送
    */
   static async delete(noteId) {
-    await pushTable.where({ noteId: ObjectId(noteId) }).delete();
+    await pushTable.where({ noteId }).delete();
   }
 }
 module.exports = PushService;

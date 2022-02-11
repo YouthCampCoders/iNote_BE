@@ -179,7 +179,7 @@ class NoteService {
    */
   static async reSchedule(id, date) {
     // 在 push 表内修改推送时间
-    await pushService.edit(id, new Date(date));
+    await pushService.edit(id, date);
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     note.pushTime = date;
     await noteTable.save(note);
