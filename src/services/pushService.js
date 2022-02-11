@@ -1,7 +1,7 @@
 /*
  * @Author: chichiksky
  * @Date: 2022-02-11 10:39:46
- * @LastEditTime: 2022-02-11 11:43:15
+ * @LastEditTime: 2022-02-11 14:51:30
  * @LastEditors: your name
  * @Description:
  * @FilePath: \iNote_BE\src\services\pushService.js
@@ -41,7 +41,7 @@ class PushService {
    * @param pushTime 下次推送时间，类型为日期对象
    */
   static async edit(noteId, pushTime) {
-    const info = await pushTable.where({ noteId }).findOne();
+    const info = await pushTable.where({ noteId: ObjectId(noteId) }).findOne();
     info.pushTime = pushTime;
     await pushTable.save(info);
   }
