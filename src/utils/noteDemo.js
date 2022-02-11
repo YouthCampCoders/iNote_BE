@@ -54,8 +54,6 @@ module.exports = function (pushTime = dayjs(), round = 0) {
     author,
     needPush: false,
     tag: "未分类",
-    schedule: [],
-    round: 1,
   };
 }
 

@@ -49,7 +49,7 @@ class PushService {
    * 取消推送
    */
   static async delete(noteId) {
-    await pushTable.where({ noteId }).delete();
+    await pushTable.where({ noteId: ObjectId(noteId) }).delete();
   }
 }
 module.exports = PushService;

@@ -39,6 +39,10 @@ class NoteService {
    * @return {Object[]} 返回存入数据库的数据
    */
   static async create(title, content, needPush, user, tag) {
+    let result = {
+      success: true,
+      message: "添加成功!",
+    };
     // 创建数据库对象
     const newNote = noteTable.create({
       title,
@@ -50,13 +54,16 @@ class NoteService {
     if (needPush) {
       // 如果需要推送而用户未填写邮箱
       if (!user.email) {
-        return {
-          success: false,
-          message: "用户未填写邮箱，无法发送邮件",
-        };
+        result.message = "未填写邮箱，无法发送邮件，已为您保存文章！";
+        newNote.needPush = false;
+      } else {
+        const pushTime = await pushService.create(
+          title,
+          user.email,
+          newNote._id
+        );
+        newNote.pushTime = pushTime;
       }
-      const pushTime = await pushService.create(title, user.email, newNote._id);
-      newNote.pushTime = pushTime;
     }
     await noteTable.save(newNote);
     // 储存用户标签和年份列表
@@ -67,11 +74,8 @@ class NoteService {
     tags = deduplication(tags, tag);
     years = deduplication(years, year);
     await userController.updateOne(user._id, ["tags", "years"], [tags, years]);
-    return {
-      success: true,
-      note: newNote,
-      message: "添加成功!",
-    };
+    result.note = newNote;
+    return result;
   }
 
   /**
@@ -125,6 +129,10 @@ class NoteService {
    * 若不存在，则抛出 404 错误
    */
   static async update(id, title, content, needPush, email) {
+    let result = {
+      success: true,
+      message: "更新成功",
+    };
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     let pushTime;
     // 如果需要推送
@@ -132,13 +140,11 @@ class NoteService {
       const push = await pushTable.where({ noteId: ObjectId(id) }).findOne();
       // 如果之前没有进行过推送，则新建；已有推送，则保持现状
       if (!push) {
-        // 如果没有email，则直接返回
-        if (!email)
-          return {
-            success: false,
-            message: "用户未填写邮箱，无法发送邮件",
-          };
-        pushTime = await pushService.create(title, email, id);
+        // 如果没有email
+        if (!email) {
+          result.message = "未填写邮箱，无法发送邮件，已为您保存文章！";
+          needPush = false;
+        } else pushTime = await pushService.create(title, email, id);
       }
     }
     // 如果不需要推送，则删除推送表内相应记录
@@ -146,10 +152,7 @@ class NoteService {
     // 更新笔记信息
     Object.assign(note, { needPush, title, content, pushTime });
     await noteTable.save(note);
-    return {
-      success: true,
-      message: "更新成功",
-    };
+    return result;
   }
 
   /**
