@@ -45,7 +45,8 @@ class NoteController {
       req.params.id,
       title,
       content,
-      needPush
+      needPush,
+      req._user.email
     );
     res.send(result);
   }
