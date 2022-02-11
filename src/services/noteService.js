@@ -55,7 +55,8 @@ class NoteService {
           message: "用户未填写邮箱，无法发送邮件",
         };
       }
-      await pushService.create(title, user.email, newNote._id);
+      const pushTime = await pushService.create(title, user.email, newNote._id);
+      nodeTable.pushTime = pushTime;
     }
     await noteTable.save(newNote);
     // 储存用户标签和年份列表
@@ -164,7 +165,10 @@ class NoteService {
    */
   static async reSchedule(id, date) {
     // 在 push 表内修改推送时间
-    await pushService.edit(id,data);
+    await pushService.edit(id,date);
+    const note = await noteTable.where({_id : ObjectId(id)}).findOne();
+    note.pushTime = date;
+    await noteTable.save(note);
     return {
       success: true,
       message: "更新成功",

@@ -1,7 +1,7 @@
 /*
  * @Author: chichiksky
  * @Date: 2022-02-11 10:39:46
- * @LastEditTime: 2022-02-11 11:10:28
+ * @LastEditTime: 2022-02-11 11:43:15
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \iNote_BE\src\services\pushService.js
@@ -28,6 +28,7 @@ class PushService {
           pushTime,
         })
       );
+      return pushTime;
   }
 
   /**
