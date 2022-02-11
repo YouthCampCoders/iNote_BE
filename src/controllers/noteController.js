@@ -1,10 +1,6 @@
 const noteService = require("../services/noteService");
-const userController = require("../controllers/userController");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const db = inspirecloud.db;
-const dayjs = require("dayjs");
-const arrangeSchedule = require("../utils/arrangeSchedule");
-const deduplication = require("../utils/deduplication");
 class NoteController {
   // 拉取笔记
   static async listNotes(req, res) {
@@ -29,30 +25,16 @@ class NoteController {
   }
   // 新建笔记
   static async create(req, res) {
-    const author = req._user._id;
-    let tags = req._user.tags || [];
-    let years = req._user.years || [];
+    // 解析参数
     let { title, content, needPush, tag = "未分类" } = req.body;
-    let schedule = [];
-    const round = 1;
-    // 如果需要推送，生成时间表
-    if (needPush) schedule = arrangeSchedule();
     // 调用 Service 层对应的业务处理方法
-    const result = await noteService.create({
+    const result = await noteService.create(
       title,
       content,
       needPush,
-      author,
-      tag,
-      schedule,
-      round,
-    });
-    // 更改对应用户的标签和年份列表
-    const year = dayjs().year();
-    tags = deduplication(tags, tag);
-    years = deduplication(years, year);
-    await userController.updateOne(author, ["tags", "years"], [tags, years]);
-    // 更改对应用户的年份列表
+      req._user,
+      tag
+    );
     res.send(result);
   }
   // 更新笔记
@@ -89,7 +71,7 @@ class NoteController {
     // 调用 Service 层对应的业务处理方法
     const id = req.params.id;
     const { date } = req.body;
-    const result = await noteService.reSchedule(id, date);
+    const result = await noteService.reSchedule(id, new Date(date));
     res.send(result);
   }
 }

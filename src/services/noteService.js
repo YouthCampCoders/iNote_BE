@@ -2,10 +2,12 @@ const dayjs = require("dayjs");
 const inspirecloud = require("@byteinspire/inspirecloud-api");
 const userController = require("../controllers/userController");
 const noteTable = require("../models/noteTable");
+const pushTable = require("../models/pushTable");
 const db = inspirecloud.db;
 const ObjectId = inspirecloud.db.ObjectId;
 const removeItem = require("../utils/removeItem");
-const arrangeSchedule = require("../utils/arrangeSchedule");
+const deduplication = require("../utils/deduplication");
+const scheduleOptions = require("../scheduleOptions");
 
 /**
  * NoteService
@@ -29,11 +31,58 @@ class NoteService {
 
   /**
    * 创建一篇笔记
-   * @param newNote 用于创建笔记的数据,内部含有字段author为用户的_id,用于区分作者,原样存进数据库
+   * @param title 笔记的标题
+   * @param content 笔记的内容
+   * @param needPush 笔记是否需要推送
+   * @param user 笔记作者信息
+   * @param tag 笔记的标签
    * @return {Object[]} 返回存入数据库的数据
    */
-  static async create(newNote) {
-    await noteTable.save(noteTable.create(newNote));
+  static async create(title, content, needPush, user, tag) {
+    let pushTime;
+    // 创建数据库对象
+    const newNote = noteTable.create({
+      title,
+      content,
+      needPush,
+      author: user._id,
+      tag,
+      pushTime,
+    });
+    if (needPush) {
+      // 如果需要推送而用户未填写邮箱
+      if (!user.email) {
+        return {
+          success: false,
+          message: "用户未填写邮箱，无法发送邮件",
+        };
+      }
+      // 如果需要推送，生成推送时间
+      pushTime = dayjs()
+        .add(scheduleOptions[1][0], scheduleOptions[1][1])
+        .format();
+      // 保存推送记录
+      await pushTable.save(
+        pushTable.create({
+          title,
+          content,
+          email: user.email,
+          round: 1,
+          note: newNote._id,
+          pushTime,
+        })
+      );
+      newNote.pushTime = pushTime;
+    }
+    await noteTable.save(newNote);
+    // 储存用户标签和年份列表
+    let tags = user.tags || [];
+    let years = user.years || [];
+    // 更改对应用户的标签和年份列表
+    const year = dayjs().year();
+    tags = deduplication(tags, tag);
+    years = deduplication(years, year);
+    await userController.updateOne(user._id, ["tags", "years"], [tags, years]);
     return {
       success: true,
       note: newNote,
@@ -51,6 +100,8 @@ class NoteService {
    */
   static async delete(id, author, tags, years) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
+    // 如果该笔记还在推送中，则将其取消推送
+    if (note.needPush) await this.cancelPush(id);
     // 储存当前文章的tag和year
     const tag = note.tag;
     const year = dayjs(note.createdAt).year();
@@ -81,18 +132,21 @@ class NoteService {
   }
 
   /**
-   * 更新一条笔记
-   * @param id 笔记的 _id
-   * @param updater 将会用原对象 merge 此对象进行更新
+   * 更新
+   * @param id 笔记id
+   * @param title 笔记标题
+   * @param content 笔记正文
+   * @param needPush 笔记是否需要推送
    * 若不存在，则抛出 404 错误
    */
   static async update(id, title, content, needPush) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    if (needPush) {
-      note.schedule = arrangeSchedule();
-    } else {
-      note.schedule = [];
-    }
+    // 如果需要推送
+    if (needPush)
+      note.pushTime = dayjs()
+        .add(scheduleOptions[1][0], scheduleOptions[1][1])
+        .format();
+    else note.pushTime = undefined;
     note.round = 1;
     note.title = title;
     note.content = content;
@@ -112,12 +166,12 @@ class NoteService {
     // 从 note 表中将该笔记修改为无需推送
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     note.needPush = false;
-    note.schedule = [];
-    note.round = 1;
     await noteTable.save(note);
+    // 从 push 表中删除该记录
+    await pushTable.where({ note: note._id }).delete();
     return {
       success: true,
-      message: "更新成功",
+      message: "取消推送成功！",
     };
   }
 
@@ -127,10 +181,14 @@ class NoteService {
    * @param date 笔记的下一次推送时间
    */
   static async reSchedule(id, date) {
-    // 重新修改笔记推送时间
+    // 在 note 表内修改推送时间
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    note.schedule = arrangeSchedule(dayjs(date), note.round);
+    note.pushTime = date;
     await noteTable.save(note);
+    // 在 push 表内修改推送时间
+    const push = await pushTable.where({ note: note._id }).findOne();
+    push.pushTime = date;
+    await pushTable.save(push);
     return {
       success: true,
       message: "更新成功",

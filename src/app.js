@@ -14,46 +14,25 @@ const userRouter = require("./routers/user");
 const fileRouter = require("./routers/file");
 // 引入中间件
 const authMiddleWare = require("./middleWare/auth");
-// 引入轮询
-const polling = require("./utils/polling");
 // 创建服务
-const app = express();
-/* 本地调试解决跨域
-app.all("*", function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, x-tt-session-v2"
-  );
-  res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
-  // OPTIONS快速返回200
-  if (req.method == "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-*/
-// 静态文件中间件
-app.use(express.static(path.join(__dirname, "../public")));
-// 请求体 parse 中间件，用于 parse json 格式请求体
-app.use(express.json());
-// 业务路由
-app.use("/user", userRouter);
-app.use("/note", authMiddleWare(), noteRouter);
-app.use("/file", authMiddleWare(), fileRouter);
-// 若无匹配业务路由，则匹配 404 路由，代表访问路径不存在
-app.use(notFound);
-/** 若前面的路由抛错，则封装为错误响应返回
- * 错误响应格式为
- * {
- *   message: err.message
- * }
- */
-app.use(errorHandler);
-// 启动轮询
-console.log("启动轮询");
-polling();
+const app = express()
+  // 静态文件中间件
+  .use(express.static(path.join(__dirname, "../public")))
+  // 请求体 parse 中间件，用于 parse json 格式请求体
+  .use(express.json())
+  // 业务路由
+  .use("/user", userRouter)
+  .use("/note", authMiddleWare(), noteRouter)
+  .use("/file", authMiddleWare(), fileRouter)
+  // 若无匹配业务路由，则匹配 404 路由，代表访问路径不存在
+  .use(notFound)
+  /** 若前面的路由抛错，则封装为错误响应返回
+   * 错误响应格式为
+   * {
+   *   message: err.message
+   * }
+   */
+  .use(errorHandler);
 
 function notFound(req, res) {
   res.status(404);
