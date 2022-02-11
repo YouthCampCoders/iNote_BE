@@ -7,7 +7,7 @@ const db = inspirecloud.db;
 const ObjectId = inspirecloud.db.ObjectId;
 const removeItem = require("../utils/removeItem");
 const deduplication = require("../utils/deduplication");
-const scheduleOptions = require("../scheduleOptions");
+const pushService = require('./pushService');
 
 /**
  * NoteService
@@ -39,7 +39,6 @@ class NoteService {
    * @return {Object[]} 返回存入数据库的数据
    */
   static async create(title, content, needPush, user, tag) {
-    let pushTime;
     // 创建数据库对象
     const newNote = noteTable.create({
       title,
@@ -47,7 +46,6 @@ class NoteService {
       needPush,
       author: user._id,
       tag,
-      pushTime,
     });
     if (needPush) {
       // 如果需要推送而用户未填写邮箱
@@ -57,22 +55,7 @@ class NoteService {
           message: "用户未填写邮箱，无法发送邮件",
         };
       }
-      // 如果需要推送，生成推送时间
-      pushTime = dayjs()
-        .add(scheduleOptions[1][0], scheduleOptions[1][1])
-        .format();
-      // 保存推送记录
-      await pushTable.save(
-        pushTable.create({
-          title,
-          content,
-          email: user.email,
-          round: 1,
-          note: newNote._id,
-          pushTime,
-        })
-      );
-      newNote.pushTime = pushTime;
+      await pushService.create(title, user.email, newNote._id);
     }
     await noteTable.save(newNote);
     // 储存用户标签和年份列表
@@ -142,15 +125,15 @@ class NoteService {
   static async update(id, title, content, needPush) {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     // 如果需要推送
-    if (needPush)
-      note.pushTime = dayjs()
-        .add(scheduleOptions[1][0], scheduleOptions[1][1])
-        .format();
-    else note.pushTime = undefined;
-    note.round = 1;
+    if (needPush) {
+      const push = await pushTable.where({noteId: id}).findOne();
+      if(!push) {
+        await pushService.create(title, email, id);
+      }
+    }
+    note.needPush = needPush;
     note.title = title;
     note.content = content;
-    note.needPush = needPush;
     await noteTable.save(note);
     return {
       success: true,
@@ -167,8 +150,7 @@ class NoteService {
     const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
     note.needPush = false;
     await noteTable.save(note);
-    // 从 push 表中删除该记录
-    await pushTable.where({ note: note._id }).delete();
+    await pushService.delete(id);
     return {
       success: true,
       message: "取消推送成功！",
@@ -181,14 +163,8 @@ class NoteService {
    * @param date 笔记的下一次推送时间
    */
   static async reSchedule(id, date) {
-    // 在 note 表内修改推送时间
-    const note = await noteTable.where({ _id: ObjectId(id) }).findOne();
-    note.pushTime = date;
-    await noteTable.save(note);
     // 在 push 表内修改推送时间
-    const push = await pushTable.where({ note: note._id }).findOne();
-    push.pushTime = date;
-    await pushTable.save(push);
+    await pushService.edit(id,data);
     return {
       success: true,
       message: "更新成功",
